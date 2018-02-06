@@ -69,6 +69,12 @@ jsPsych.plugins.video = (function() {
         pretty_name: 'Indicate Loading',
         default: false,
         description: 'If true, show a "Loading..." message until the video is ready to play.'
+      },
+      promptEnableAutoplay: {
+        type: jsPsych.plugins.parameterType.BOOL,
+        pretty_name: 'Prompt to Enable Autoplay',
+        default: false,
+        description: 'If true, prompt the user to enable autoplay in cases where it is disabled by the browser.'
       }
     }
   }
@@ -80,14 +86,12 @@ jsPsych.plugins.video = (function() {
     // display stimulus
     var video_html = "";
     
+    // add hidden loading indicator if enabled
     if (trial.indicateLoading) {
       video_html += "<p id='jspsych-video-loading' style='display: none;'>Loading...</p>\n";
     }
     
     video_html += '<video id="jspsych-video-player" width="'+trial.width+'" height="'+trial.height+'" '
-    if(trial.autoplay){
-      video_html += "autoplay "
-    }
     if(trial.controls){
       video_html +="controls "
     }
@@ -120,6 +124,11 @@ jsPsych.plugins.video = (function() {
     //show prompt if there is one
     if (trial.prompt !== null) {
       video_html += trial.prompt;
+    }
+    
+    //add hidden autoplay enable prompt if enabled
+    if (trial.promptEnableAutoplay) {
+      video_html += "<div id='jspsych-video-autoprompt' style='display: none;'><p>Please enable autoplay in your browser, or click the 'Play' button: <button id='jspsych-video-apbutton'>Play</button></p></div>\n";
     }
 
     display_element.innerHTML = video_html;
@@ -155,6 +164,31 @@ jsPsych.plugins.video = (function() {
       videoEl.oncanplaythrough = function() {
         loadingEl.style.display = 'none';
       }
+    }
+    
+    // Start playing a video. If autoplay is disabled by browser and prompting is enabled,
+    // prompt the user to enable autoplay or play by hand. Continue until they succeed.
+    var attempt_to_play = function() {
+      var promise = display_element.querySelector('#jspsych-video-player').play();
+      // Desktop Safari now prevents autoplay of certain types of media by default
+      if (trial.promptEnableAutoplay && promise !== undefined) {
+        var promptEl = display_element.querySelector('#jspsych-video-autoprompt');
+        promise.then(function() {
+          promptEl.style.display = 'none'; // success
+        }, function() {
+          promptEl.style.display = 'block'; // failure
+        });
+      }
+    }
+    
+    if (trial.autoplay) {
+      // Set up 'Continue' button in autoplay prompt if enabled
+      if (trial.promptEnableAutoplay) {
+        display_element.querySelector('#jspsych-video-apbutton').onclick = function() {
+          attempt_to_play();
+        };
+      }
+      attempt_to_play();
     }
 
     // function to end trial when it is time
