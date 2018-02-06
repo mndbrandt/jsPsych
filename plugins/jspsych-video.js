@@ -63,6 +63,12 @@ jsPsych.plugins.video = (function() {
         pretty_name: 'Stop',
         default: null,
         description: 'Time to stop the clip.'
+      },
+      indicateLoading: {
+        type: jsPsych.plugins.parameterType.BOOL,
+        pretty_name: 'Indicate Loading',
+        default: false,
+        description: 'If true, show a "Loading..." message until the video is ready to play.'
       }
     }
   }
@@ -70,8 +76,15 @@ jsPsych.plugins.video = (function() {
 
   plugin.trial = function(display_element, trial) {
 
+
     // display stimulus
-    var video_html = '<video id="jspsych-video-player" width="'+trial.width+'" height="'+trial.height+'" '
+    var video_html = "";
+    
+    if (trial.indicateLoading) {
+      video_html += "<p id='jspsych-video-loading' style='display: none;'>Loading...</p>\n";
+    }
+    
+    video_html += '<video id="jspsych-video-player" width="'+trial.width+'" height="'+trial.height+'" '
     if(trial.autoplay){
       video_html += "autoplay "
     }
@@ -122,6 +135,20 @@ jsPsych.plugins.video = (function() {
           trial.start = 0;
         }
         jsPsych.pluginAPI.setTimeout(end_trial, (trial.stop-trial.start)*1000);
+      }
+    }
+    
+    if (trial.indicateLoading) {
+      
+      var videoEl = display_element.querySelector('#jspsych-video-player');
+      var loadingEl = display_element.querySelector('#jspsych-video-loading');
+      
+      videoEl.onloadstart = function() {
+        loadingEl.style.display = 'block';
+      }
+      
+      videoEl.oncanplaythrough = function() {
+        loadingEl.style.display = 'none';
       }
     }
 
