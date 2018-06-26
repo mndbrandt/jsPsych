@@ -1,4 +1,4 @@
-# jspsych-categorize-html
+# jspsych-categorize-image
 
 The categorize image plugin shows an image object on the screen. The subject responds by pressing a key. Feedback indicating the correctness of the response is given.
 
@@ -41,7 +41,7 @@ correct | boolean | `true` if the subject got the correct answer, `false` otherw
 
 ```javascript
 var categorization_trial = {
-    type: 'categorize',
+    type: 'categorize-image',
     stimulus: 'img/harrypotter.png',
     key_answer: 71,
     text_answer: 'Gryffindor',

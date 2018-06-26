@@ -3,7 +3,7 @@
 ---
 ## jsPsych.addNodeToEndOfTimeline
 ```
-jsPsych.addNodeToEndOfTimeline(node_parameters)
+jsPsych.addNodeToEndOfTimeline(node_parameters, callback)
 ```
 
 ### Parameters
@@ -11,6 +11,7 @@ jsPsych.addNodeToEndOfTimeline(node_parameters)
 Parameter | Type | Description
 --------- | ---- | -----------
 node_parameters | object | An object defining a timeline. It must have, at a minimum, a `timeline` parameter with a valid timeline array as the value for that parameter.
+callback | function | An optional callback function. If adding the node to the timeline requires any preloading of media assets, this callback will be triggered after preloading is compelte.
 
 ### Return value
 
@@ -20,7 +21,9 @@ None.
 
 Adds the timeline to the end of the experiment.
 
-### Example
+### Examples
+
+#### Without callback
 
 ```javascript
 var trial = {
@@ -33,6 +36,24 @@ var new_timeline = {
 }
 
 jsPsych.addNodeToEndOfTimeline(new_timeline)
+```
+
+### With callback
+
+```javascript
+var first = {
+  type: 'html-keyboard-response',
+  stimulus: 'first trial; new trial added when on_finish is called',
+  on_finish: function(){
+    jsPsych.pauseExperiment();
+    jsPsych.addNodeToEndOfTimeline({
+      timeline: [{
+        type: 'image-keyboard-response',
+        stimulus: 'img/happy_face_4.jpg'
+      }]
+    }, jsPsych.resumeExperiment)
+  }
+}
 ```
 
 ---
@@ -295,7 +316,7 @@ The settings object can contain several parameters. The only *required* paramete
 Parameter | Type | Description
 --------- | ---- | -----------
 timeline | array | An array containing the objects that describe the experiment timeline. See [Creating an Experiment: The Timeline](../overview/timeline.md).
-display_element | string | The ID of an HTML element to display the experiment in. If left blank, then jsPsych will use the `<body>` element to display content (creating it if necessary). You can override this parameter at the trial level as well by specifying a display_element property on any timeline.
+display_element | string | The ID of an HTML element to display the experiment in. If left blank, jsPsych will use the `<body>` element to display content (creating it if necessary). All keyboard event listeners are bound to this element. In order for a keyboard event to be detected, this element must have focus (be the last thing that the subject clicked on).
 on_finish | function | Function to execute when the experiment ends.
 on_trial_start | function | Function to execute when a new trial begins.
 on_trial_finish | function | Function to execute when a trial ends.
@@ -308,6 +329,8 @@ show_preload_progress_bar | boolean | If true, then a progress bar is displayed 
 preload_audio | array | An array of audio files to preload before starting the experiment.
 preload_images | array | An array of image files to preload before starting the experiment.
 max_load_time | numeric | The maximum number of milliseconds to wait for content to preload. If the wait time is exceeded an error message is displayed and the experiment stops. The default value is 60 seconds.
+max_preload_attempts | numeric | The maximum number of attempts to preload each file in case of an error. The default value is 10. There is a small delay of 200ms between each attempt.
+use_webaudio | boolean | If false, then jsPsych will not attempt to use the WebAudio API for audio playback. Instead, HTML5 Audio objects will be used. The WebAudio API offers more precise control over the timing of audio events, and should be used when possible. The default value is true.
 default_iti | numeric | The default inter-trial interval in ms. The default value if none is specified is 0ms.
 
 Possible values for the exclusions parameter above.
