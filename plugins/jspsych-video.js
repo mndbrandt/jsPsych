@@ -141,15 +141,20 @@ jsPsych.plugins.video = (function() {
       end_trial();
     }
 
-	// event handler to set timeout to end trial if video is stopped
-	display_element.querySelector('#jspsych-video-player').onplay = function(){
-	  if(trial.stop !== null){
-			if(trial.start == null){
-				trial.start = 0;
-			}
-			jsPsych.pluginAPI.setTimeout(end_trial, (trial.stop-trial.start)*1000);
-		}
-	}
+    // event handler to end trial when video reaches stop time
+    display_element.querySelector('#jspsych-video-player').onplay = function(){
+      if(trial.stop !== null){
+        if(trial.start == null){
+          trial.start = 0;
+        }
+        display_element.querySelector('#jspsych-video-player').ontimeupdate = function(event) {
+          var currentTime = event.target.currentTime;
+          if (currentTime >= trial.stop) {
+            end_trial();
+          }
+        }
+      }
+    }
     
     if (trial.indicateLoading) {
       
