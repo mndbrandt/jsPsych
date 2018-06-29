@@ -145,20 +145,21 @@ jsPsych.plugins.video = (function() {
     }
     
     // Handle stopping
-    if(trial.stop !== null){
-      var timeUpdateHandler = function(event) {
-        var currentTime = videoPlayer.currentTime;
-        if (currentTime >= trial.stop) {
-          videoPlayer.removeEventListener("timeupdate", timeUpdateHandler);
-          end_trial();
-        }
-      };
-      videoPlayer.addEventListener("timeupdate", timeUpdateHandler);
-    } else {
-      videoPlayer.addEventListener("ended", function(){
+    var timeUpdateHandler = function(event) {
+      var currentTime = videoPlayer.currentTime;
+      if (currentTime >= trial.stop) {
+        videoPlayer.removeEventListener("timeupdate", timeUpdateHandler);
         end_trial();
-      });
+      }
+    };
+    if(trial.stop !== null){
+      // If a stop time is specificed, listen for it
+      videoPlayer.addEventListener("timeupdate", timeUpdateHandler);
     }
+    videoPlayer.addEventListener("ended", function(){
+      videoPlayer.removeEventListener("timeupdate", timeUpdateHandler); // In case video ends before stop time is reached
+      end_trial();
+    });
     
     if (trial.indicateLoading) {
       
